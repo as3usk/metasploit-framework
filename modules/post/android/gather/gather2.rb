@@ -36,10 +36,10 @@ class Metasploit3 < Msf::Post
   def read_file(file_name)
     data = nil
     data = session.shell_command_token("/system/bin/cat \'#{file_name}\'")
-    data.gsub!(/^\n/, "") # Delete initial new line character
     if data =~ /No such file or directory/
       return nil
     end
+    data.gsub!(/^\n/, "") # Delete initial new line character
     return data
   end
 
