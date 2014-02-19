@@ -147,6 +147,10 @@ Files: modules/payloads/singles/windows/speak_pwned.rb
 Copyright: 2009-2010 Berend-Jan "SkyLined" Wever <berendjanwever@gmail.com>
 License: BSD-3-clause
 
+Files: modules/payloads/singles/cmd/windows/reverse_powershell.rb
+Copyright: 2013, The Social-Engineer Toolkit (SET) by TrustedSec, LLC
+License: BSD-3-clause
+
 #
 # Gems
 #
