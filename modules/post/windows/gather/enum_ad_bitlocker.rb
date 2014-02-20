@@ -25,7 +25,7 @@ class Metasploit3 < Msf::Post
       'SessionTypes' => [ 'meterpreter' ],
       'References'   =>
         [
-          ['URL', 'tbc']
+          ['URL', 'http://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx']
         ]
     ))
 
@@ -40,7 +40,12 @@ class Metasploit3 < Msf::Post
     fields = datastore['FIELDS'].gsub(/\s+/,"").split(',')
     search_filter = datastore['FILTER']
     max_search = datastore['MAX_SEARCH']
-    q = query(search_filter, max_search, fields)
+    begin
+      q = query(search_filter, max_search, fields)
+    rescue Rex::Post::Meterpreter::RequestError
+      print_error("Failed to perform the LDAP query, maybe Bitlocker isn't available.")
+      return
+    end
 
     if q.nil? or q[:results].empty?
       return
@@ -48,11 +53,11 @@ class Metasploit3 < Msf::Post
 
     # Results table holds raw string data
     results_table = Rex::Ui::Text::Table.new(
-        'Header'     => "Bitlocker Recovery Passwords",
-        'Indent'     => 1,
-        'SortIndex'  => -1,
-        'Columns'    => fields
-      )
+      'Header'     => "Bitlocker Recovery Passwords",
+      'Indent'     => 1,
+      'SortIndex'  => -1,
+      'Columns'    => fields
+    )
 
     q[:results].each do |result|
       row = []
