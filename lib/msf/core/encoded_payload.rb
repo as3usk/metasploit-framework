@@ -376,7 +376,9 @@ class EncodedPayload
   # executes it.
   #
   def encoded_jar(opts={})
-    return pinst.generate_jar(opts) if pinst.respond_to? :generate_jar
+    if pinst.respond_to? :generate_jar
+      return pinst.generate_jar(opts)
+    end
 
     opts[:spawn] ||= pinst.datastore["Spawn"]
 
