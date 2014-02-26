@@ -15,6 +15,7 @@ module Zip
 #
 class Jar < Archive
   attr_accessor :manifest
+  attr_accessor :main_class
 
   #
   # Create a MANIFEST.MF file based on the current Archive#entries.
@@ -35,12 +36,12 @@ class Jar < Archive
   # The SHA1-Digest lines are optional unless the jar is signed (see #sign).
   #
   def build_manifest(opts={})
-    main_class = opts[:main_class] || nil
+    @main_class ||= opts[:main_class] || nil
     app_name = opts[:app_name] || nil
     existing_manifest = nil
 
     @manifest =  "Manifest-Version: 1.0\r\n"
-    @manifest << "Main-Class: #{main_class}\r\n" if main_class
+    @manifest << "Main-Class: #{@main_class}\r\n" if @main_class
     @manifest << "Application-Name: #{app_name}\r\n" if app_name
     @manifest << "Permissions: all-permissions\r\n"
     @manifest << "\r\n"

